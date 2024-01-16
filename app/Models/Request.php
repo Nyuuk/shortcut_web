@@ -19,7 +19,8 @@ class Request extends Model
         'catatan',
         'programs',
         'is_member',
-        'programs_acc'
+        'programs_acc',
+        'payment_method_id'
     ];
 
     protected $casts = [

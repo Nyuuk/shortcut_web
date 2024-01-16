@@ -20,9 +20,10 @@ return new class extends Migration
             $table->string('alamat_st')->nullable();
             $table->json('programs');
             $table->string('period')->nullable();
-            $table->text('catatan')->nullable();
+            $table->longText('catatan')->nullable();
             $table->boolean('is_member')->default(false);
             $table->json('programs_acc')->nullable();
+            $table->foreign('payment_method_id')->references('id')->on('payment_methods');
             $table->timestamps();
         });
     }

@@ -11,15 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('programs', function (Blueprint $table) {
+        Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
-            $table->string('username')->unique();
-            $table->string('nama');
-            $table->bigInteger('harga');
-            $table->longText('deskripsi')->nullable();
-            // boolean
-            $table->boolean('is_active')->default(true);
-            $table->boolean('is_ebook')->default(false);
+            $table->string('name');
+            $table->string('atas_nama');
+            $table->enum('type', ['cash', 'debit']);
             $table->timestamps();
         });
     }
@@ -29,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('programs');
+        Schema::dropIfExists('payment_methods');
     }
 };
