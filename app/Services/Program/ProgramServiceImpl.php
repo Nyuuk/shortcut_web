@@ -46,10 +46,10 @@ class ProgramServiceImpl implements ProgramService
         $this->msgResult['code'] = 500;
         return $this->msgResult;
     }
-    public function allData()
+    public function allData($oldest)
     {
         try {
-            $data = $this->repository->all();
+            $data = $this->repository->orderBy('id', $oldest ? 'asc' : 'desc');
             $this->msgResult['data'] = $data;
             $this->msgResult['code'] = 200;
         } catch (\Throwable $th) {

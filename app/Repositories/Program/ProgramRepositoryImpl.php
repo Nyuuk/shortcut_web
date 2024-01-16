@@ -48,4 +48,8 @@ class ProgramRepositoryImpl implements ProgramRepository
     {
         return $this->pgDB->where($col, 'like', '%' . $data . '%')->get();
     }
+    public function orderBy($col, $type)
+    {
+        return $this->pgDB->orderBy($col, $type)->get();
+    }
 }

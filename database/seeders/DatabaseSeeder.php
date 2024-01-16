@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
             'deskripsi' => 'ini deskripsi program 3',
         ]);
         \App\Models\Program::create([
-            'username' => 'vs1',
+            'username' => 'vc1',
             'nama' => 'vocabularies 1',
             'harga' => '75000',
             'deskripsi' => 'ini deskripsi program 1',

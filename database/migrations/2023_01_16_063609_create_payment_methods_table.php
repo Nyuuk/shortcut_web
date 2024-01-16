@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('payment_methods', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('atas_nama');
-            $table->enum('type', ['cash', 'debit']);
+            $table->string('atas_nama')->nullable();
+            $table->string('no_rek')->nullable();
+            $table->enum('type', ['cash', 'debit'])->default('debit');
             $table->timestamps();
         });
     }

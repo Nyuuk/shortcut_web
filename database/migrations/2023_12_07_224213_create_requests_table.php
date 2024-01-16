@@ -23,6 +23,7 @@ return new class extends Migration
             $table->longText('catatan')->nullable();
             $table->boolean('is_member')->default(false);
             $table->json('programs_acc')->nullable();
+            $table->foreignId('payment_method_id');
             $table->foreign('payment_method_id')->references('id')->on('payment_methods');
             $table->timestamps();
         });

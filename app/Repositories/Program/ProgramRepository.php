@@ -10,4 +10,5 @@ interface ProgramRepository
     public function find($id);
     public function all();
     public function filter($col, $data);
+    public function orderBy($col, $type);
 }
