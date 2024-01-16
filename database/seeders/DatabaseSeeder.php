@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             'password' => bcrypt('mudah_bangat'),
         ]);
 
+        // Program
         \App\Models\Program::create([
             'username' => 'sg1',
             'nama' => 'super grammar 1',
@@ -49,6 +50,21 @@ class DatabaseSeeder extends Seeder
             'nama' => 'vocabularies 1',
             'harga' => '75000',
             'deskripsi' => 'ini deskripsi program 1',
+        ]);
+
+        // payment_methods
+        \App\Models\PaymentMethod::create([
+            'name' => 'BCA',
+            'no_rek' => '3880748717',
+            'atas_nama' => 'Julius Johanes Azarya'
+        ]);
+        \App\Models\PaymentMethod::create([
+            'name' => 'Mandiri',
+            'no_rek' => '1710012370964',
+            'atas_nama' => 'Julius Johanes Azarya'
+        ]);
+        \App\Models\PaymentMethod::create([
+            'name' => 'Julius Johanes Azarya',
         ]);
     }
 }
