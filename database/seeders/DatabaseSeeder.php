@@ -51,6 +51,13 @@ class DatabaseSeeder extends Seeder
             'harga' => '75000',
             'deskripsi' => 'ini deskripsi program 1',
         ]);
+        \App\Models\Program::create([
+            'username' => 'basic1',
+            'nama' => 'Program Basic 1',
+            'harga' => '75000',
+            'deskripsi' => 'ini deskripsi program 1',
+            'is_ebook' => true,
+        ]);
 
         // payment_methods
         \App\Models\PaymentMethod::create([
@@ -64,7 +71,7 @@ class DatabaseSeeder extends Seeder
             'atas_nama' => 'Julius Johanes Azarya'
         ]);
         \App\Models\PaymentMethod::create([
-            'name' => 'Julius Johanes Azarya',
+            'name' => 'Office ShortCut',
         ]);
     }
 }

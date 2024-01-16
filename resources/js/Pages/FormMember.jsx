@@ -1,9 +1,9 @@
 import InputError from "@/Components/InputError";
 import InputLabel from "@/Components/InputLabel";
-import { Head, useForm, useRemember } from "@inertiajs/react";
+import { Head, useRemember } from "@inertiajs/react";
 import dayjs from "dayjs";
 import { Checkbox, Label, Spinner, Toast } from "flowbite-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import DatePicker from "tailwind-datepicker-react";
 
 export default function FormMember({ programs }) {
@@ -216,20 +216,6 @@ export default function FormMember({ programs }) {
                             baik-baik ya sebelum Transfer (Meskipun kamu sudah
                             kabarin CS Online kami)
                         </p>
-                        <span>
-                            <p>
-                                No rek. <Bold>Mandiri</Bold>
-                            </p>
-                            <p>1710012370964</p>
-                            <p>a.n. Julius Johanes Azarya</p>
-                        </span>
-                        <span>
-                            <p>
-                                No rek. <Bold>BCA</Bold>
-                            </p>
-                            <p>3880748717</p>
-                            <p>a.n. Julius Johanes Azarya</p>
-                        </span>
                     </Card>
                     {/* <form onSubmit={submit}> */}
                     <Card atas={false}>
@@ -402,6 +388,8 @@ export default function FormMember({ programs }) {
                             <div className="w-full ml-2 flex flex-row flex-wrap gap-y-2">
                                 {programs.length !== 0 ? (
                                     programs.map((program) => {
+                                        if (program.is_active === false) return;
+                                        if (program.is_ebook === true) return;
                                         return (
                                             <div
                                                 className="flex gap-2 w-2/4"
@@ -427,6 +415,65 @@ export default function FormMember({ programs }) {
                                                     <div className="text-gray-500 dark:text-gray-300">
                                                         <span className="text-xs font-normal capitalize">
                                                             {program.nama}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <span className="text-red-500 text-sm text-center font-medium">
+                                        I'm Sorry :( data not found. Please
+                                        contact admin to report this issue
+                                    </span>
+                                )}
+                                <InputError
+                                    message={errors.programs}
+                                    className="mt-2"
+                                />
+                            </div>
+                        </div>
+                        {/* Ebook */}
+                        <div>
+                            <span className="block text-gray-700 dark:text-gray-300 font-bold text-base ml-1 mb-1">
+                                Ebook Pilihan{" "}
+                                <span className="text-red-500 text-xs">
+                                    (OPTIONAL)
+                                </span>
+                            </span>
+                            <div className="w-full ml-2 flex flex-row flex-wrap gap-y-2">
+                                {programs.length !== 0 ? (
+                                    programs.map((program) => {
+                                        if (program.is_active === false) return;
+                                        if (program.is_ebook !== true) return;
+                                        return (
+                                            <div
+                                                className="flex gap-2 w-full"
+                                                key={program.id}
+                                            >
+                                                <div className="flex h-5 items-center">
+                                                    <Checkbox
+                                                        id={program.id}
+                                                        onChange={(e) =>
+                                                            onChangeProgram(
+                                                                e.target.id
+                                                            )
+                                                        }
+                                                        defaultChecked={data.programs.includes(
+                                                            program.id
+                                                        )}
+                                                    />
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <Label
+                                                        htmlFor={program.id}
+                                                        className="capitalize"
+                                                    >
+                                                        {program.nama}
+                                                    </Label>
+                                                    <div className="text-gray-500 dark:text-gray-300">
+                                                        <span className="text-xs font-normal capitalize">
+                                                            {program.deskripsi}
                                                         </span>
                                                     </div>
                                                 </div>

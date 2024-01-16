@@ -130,7 +130,7 @@ export default function Programs() {
 }
 
 const FormWillRender = ({ data, changeModal }) => {
-    const { username, nama, harga, deskripsi, is_active } = data;
+    const { username, nama, harga, deskripsi, is_active, is_ebook } = data;
     const [wantToDelete, setWantToDelete] = useState(false);
     const [isExpanded, setIsExpanded] = useState(false);
     const onSubmitDelete = async () => {
@@ -203,6 +203,18 @@ const FormWillRender = ({ data, changeModal }) => {
                                 False
                             </span>
                         )}
+                        <span className="col-span-2">Is Ebook</span>
+                        <span className="col-span-1">:</span>
+                        {/* <span className="col-span-2 text-gray-800 dark:text-gray-200"> */}
+                        {is_ebook === true ? (
+                            <span className="col-span-2 text-green-500">
+                                True
+                            </span>
+                        ) : (
+                            <span className="col-span-2 text-red-500">
+                                False
+                            </span>
+                        )}
                         {/* </span> */}
                         <span className="col-span-2">Deskripsi</span>
                         <span className="col-span-1">:</span>
@@ -219,17 +231,21 @@ const FormWillRender = ({ data, changeModal }) => {
                         </span>
                     </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                    <Button color="green" onClick={changeModal}>
+                <div className="w-full">
+                    <Button
+                        color="green"
+                        onClick={changeModal}
+                        className="w-full"
+                    >
                         Edit
                     </Button>
-                    <Button
+                    {/* <Button
                         color="red"
                         onClick={() => setWantToDelete(true)}
                         outline
                     >
                         Delete
-                    </Button>
+                    </Button> */}
                 </div>
             </Card>
             {wantToDelete && (
@@ -277,14 +293,6 @@ const T1 = () => {
     console.log("T1 rendered");
     const [dataToSend, setDataToSend] = useState({ is_active: false });
     const onChangeMod = (e, mode) => {
-        // console.log(e);
-        // signalsComponents.data.value = {
-        //     ...signalsComponents.data.value,
-        //     dataWillSend: {
-        //         ...signalsComponents.data.value?.dataWillSend,
-        //         [mode]: e,
-        //     },
-        // };
         setDataToSend((prev) => ({ ...prev, [mode]: e }));
     };
     const submit = async (e) => {
@@ -292,10 +300,6 @@ const T1 = () => {
         try {
             // const data = signalsComponents.data.value?.dataWillSend;
             const data = dataToSend;
-            // signalsComponents.data.value = {
-            //     ...signalsComponents.data.value,
-            //     dataWillSend: {},
-            // };
             // setData ke dafault agar button isProccessing
             setDataToSend({});
 
@@ -463,6 +467,31 @@ const T1 = () => {
                     <div className="text-gray-500 dark:text-gray-300">
                         <span className="text-xs font-normal">
                             Check it, if this program is active
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {/* Ebook */}
+            <div className="flex gap-2">
+                <div className="flex h-5 items-center">
+                    <Checkbox
+                        id="ebook"
+                        onChange={(e) =>
+                            onChangeMod(e.target.checked, "is_ebook")
+                        }
+                        checked={dataToSend?.is_ebook}
+                    />
+                </div>
+                <div className="flex flex-col">
+                    <Label
+                        htmlFor="ebook"
+                        className="text-gray-500 dark:text-gray-300"
+                    >
+                        Ebook
+                    </Label>
+                    <div className="text-gray-500 dark:text-gray-300">
+                        <span className="text-xs font-normal">
+                            Check it, if this program is Ebook
                         </span>
                     </div>
                 </div>

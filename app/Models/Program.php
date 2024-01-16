@@ -15,9 +15,11 @@ class Program extends Model
         'username',
         'harga',
         'is_active',
+        'is_ebook'
     ];
 
     protected $casts = [
-        "is_active" => "boolean"
+        "is_active" => "boolean",
+        'is_ebook' => 'boolean'
     ];
 }
