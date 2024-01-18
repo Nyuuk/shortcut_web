@@ -1,5 +1,5 @@
 import { convertWibWithManualOutput } from "@/api/ConvertToWib";
-import { Link } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
 import { Button, Dropdown, Table, Modal } from "flowbite-react";
 import { useEffect, useState } from "react";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
@@ -94,6 +94,12 @@ export const TableWithSearch = ({ columns, data }) => {
         setIdTo(id);
     };
 
+    const onEdit = (id) => {
+        router.visit(route("dashboard.edit-member", { id: id }), {
+            method: "get",
+        });
+    };
+
     return (
         <>
             <div className="overflow-x-auto">
@@ -148,7 +154,7 @@ export const TableWithSearch = ({ columns, data }) => {
                                                         key={i}
                                                         className=""
                                                     >
-                                                        <div className="flex flex-row flex-wrap gap-1 justify-center items-center h-full">
+                                                        <div className="flex flex-row flex-wrap gap-1 h-full">
                                                             {item[
                                                                 column.uniq_name
                                                             ].map(
@@ -201,7 +207,11 @@ export const TableWithSearch = ({ columns, data }) => {
                                                 label="Action"
                                                 placement="left-start"
                                             >
-                                                <Dropdown.Item>
+                                                <Dropdown.Item
+                                                    onClick={() =>
+                                                        onEdit(item.id)
+                                                    }
+                                                >
                                                     Edit
                                                 </Dropdown.Item>
                                                 <Dropdown.Item

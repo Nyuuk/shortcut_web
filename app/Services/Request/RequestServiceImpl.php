@@ -6,9 +6,7 @@ use App\Repositories\Request\RequestRepositorie;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
-use InvalidArgumentException;
 
-use function PHPSTORM_META\map;
 
 class RequestServiceImpl implements RequestService
 {
@@ -178,7 +176,12 @@ class RequestServiceImpl implements RequestService
 
     public function create($dataRequest)
     {
-        $validateData = Validator::make($dataRequest, $this->validatorFormat);
+        $validatorFormat = [
+            'invoice_number' => 'required|string|regex:/^INV\d{10}$/|unique:invoices,invoice_number',
+            'payment_method_id' => 'required|exists:payment_methods,id',
+            ...$this->validatorFormat
+        ];
+        $validateData = Validator::make($dataRequest, $validatorFormat);
 
         if ($validateData->fails()) {
             $this->msgResult['data'] = ['errors' => $validateData->errors()];
@@ -204,7 +207,32 @@ class RequestServiceImpl implements RequestService
         DB::beginTransaction();
 
         try {
-            $this->msgResult['data'] = $this->repository->create($dataRequest);
+            $dataValue = [
+                'nama' => $dataRequest['nama'],
+                'email' => $dataRequest['email'],
+                'no_wa' => $dataRequest['no_wa'],
+                'period' => $dataRequest['period'],
+                'programs' => $dataRequest['programs'],
+            ];
+            if (!empty($dataRequest['catatan'])) {
+                $dataValue['catatan'] = $dataRequest['catatan'];
+            }
+            if (!empty($dataRequest['alamat_st'])) {
+                $dataValue['alamat_st'] = $dataRequest['alamat_st'];
+            }
+            if (!empty($dataRequest['alamat_ht'])) {
+                $dataValue['alamat_ht'] = $dataRequest['alamat_ht'];
+            }
+            $newData = $this->repository->create($dataValue);
+            $valueInvoice = [
+                'request_id' => $newData->id,
+                'invoice_number' => $dataRequest['invoice_number'],
+                'payment_method_id' => $dataRequest['payment_method_id'],
+            ];
+            $invoiceRepo = new \App\Repositories\Invoice\InvoiceRepositoryImp;
+            $invoice = $invoiceRepo->create($valueInvoice);
+
+            $this->msgResult['data'] = ['newData' => $newData, 'invoice' => $invoice];
             $this->msgResult['code'] = 200;
         } catch (\Throwable $th) {
             DB::rollBack();

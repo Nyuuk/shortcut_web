@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Request as ModelsRequest;
+use App\Services\PaymentMethods\PaymentMethodsService;
 use App\Services\Program\ProgramService;
 use App\Services\Request\RequestService;
 use Illuminate\Http\Request;
@@ -13,10 +14,12 @@ class ApiController extends Controller
     //
     private $programService;
     private $requestService;
-    public function __construct(ProgramService $pgS, RequestService $rqS)
+    private $paymentService;
+    public function __construct(ProgramService $pgS, RequestService $rqS, PaymentMethodsService $payS)
     {
         $this->programService = $pgS;
         $this->requestService = $rqS;
+        $this->paymentService = $payS;
     }
     public function layoutApi()
     {
@@ -72,5 +75,16 @@ class ApiController extends Controller
     {
         $data = $this->requestService->delete($id);
         return response()->json($data, $data['code']);
+    }
+
+    public function getPaymentMethods()
+    {
+        $data = $this->paymentService->all();
+        return response()->json($data, $data['code']);
+    }
+
+    public function updateRequest($id, Request $req)
+    {
+        return $this->paymentService->update($id, $req);
     }
 }

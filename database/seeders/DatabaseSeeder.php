@@ -72,6 +72,7 @@ class DatabaseSeeder extends Seeder
         ]);
         \App\Models\PaymentMethod::create([
             'name' => 'Office ShortCut',
+            'type' => 'cash'
         ]);
     }
 }

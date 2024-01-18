@@ -39,4 +39,25 @@ class IndexController extends Controller
     {
         return Inertia::render('Dashboard/Programs');
     }
+    public function editMember($id, \App\Repositories\Request\RequestRepositorieImpl $repo)
+    {
+        $data = $repo->find($id);
+
+        if ($data) {
+            $programs = \App\Models\Program::whereIn('id', $data->programs)->get();
+            $programNames = $programs->pluck('username')->toArray();
+
+            $programs_acc = \App\Models\Program::whereIn('id', $data->programs_acc)->get();
+            $data->programs_acc_name = $programs_acc->pluck('username')->toArray();
+
+            $data->programs_id = $data->programs;
+            $data->programs = $programNames;
+            $data['invoice'] = \App\Models\Invoice::where('request_id', $id)->with('paymentMethod')->first();
+
+            return Inertia::render('Dashboard/EditMember', [
+                'data' => $data
+            ]);
+        }
+        abort(404);
+    }
 }

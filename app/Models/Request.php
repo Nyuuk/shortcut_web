@@ -18,9 +18,7 @@ class Request extends Model
         'period',
         'catatan',
         'programs',
-        'is_member',
         'programs_acc',
-        'payment_method_id'
     ];
 
     protected $casts = [
@@ -29,8 +27,8 @@ class Request extends Model
         'is_member' => "boolean"
     ];
 
-    public function members()
+    public function invoice()
     {
-        return $this->hasOne(Member::class, 'request_id');
+        return $this->hasOne(Invoice::class, 'request_id');
     }
 }

@@ -12,6 +12,12 @@ class PaymentMethod extends Model
     protected $fillable = [
         'name',
         'atas_nama',
-        'type'
+        'type',
+        'no_rek'
     ];
+
+    public function invoice()
+    {
+        return $this->hasMany(Invoice::class, 'payment_method_id');
+    }
 }

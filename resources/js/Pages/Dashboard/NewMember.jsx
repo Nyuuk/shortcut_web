@@ -34,10 +34,10 @@ export default function NewMember() {
             uniq_name: "alamat_st",
             name: "Temporary Address",
         },
-        // {
-        //     uniq_name: "catatan",
-        //     name: "Note",
-        // },
+        {
+            uniq_name: "catatan",
+            name: "Note",
+        },
         // {
         //     uniq_name: "period",
         //     name: "Periods",
