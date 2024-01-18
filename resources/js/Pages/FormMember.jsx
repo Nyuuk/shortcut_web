@@ -125,7 +125,7 @@ export default function FormMember({ programs, payment_methods }) {
                 data
             );
             // check response
-            if (response.statusText === "OK") {
+            if (response.status === 200) {
                 addToast("success", "Your data has been successfully added.");
                 setErrors({ ...defaultErrors });
                 router.visit(
@@ -134,7 +134,7 @@ export default function FormMember({ programs, payment_methods }) {
                     }),
                     {
                         method: "get",
-                        replace: true,
+                        // replace: true,
                     }
                 );
             }
