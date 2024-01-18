@@ -47,8 +47,10 @@ class IndexController extends Controller
             $programs = \App\Models\Program::whereIn('id', $data->programs)->get();
             $programNames = $programs->pluck('username')->toArray();
 
-            $programs_acc = \App\Models\Program::whereIn('id', $data->programs_acc)->get();
-            $data->programs_acc_name = $programs_acc->pluck('username')->toArray();
+            if (!is_null($data->programs_acc) && count($data->programs_acc) > 0) {
+                $programs_acc = \App\Models\Program::whereIn('id', $data->programs_acc)->get();
+                $data->programs_acc_name = $programs_acc->pluck('username')->toArray();
+            }
 
             $data->programs_id = $data->programs;
             $data->programs = $programNames;

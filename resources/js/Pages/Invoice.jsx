@@ -26,9 +26,6 @@ export default function Invoice({ data }) {
                 {/* TABLE */}
                 {data.programs_acc.length > 0 ? (
                     <>
-                        <span className="text-base md:text-xl text-red-500">
-                            Your payment or your data has been changed by Admin
-                        </span>
                         <TableInvoice
                             dataTable={data.programs_acc}
                             invoiceData={data.invoice}

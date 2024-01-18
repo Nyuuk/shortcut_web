@@ -167,7 +167,7 @@ export default function FormMember({ programs, payment_methods }) {
     const getInvoiceValue = async () => {
         try {
             const response = await axios.get(route("get-value-invoice"));
-            if (response.statusText === "OK") {
+            if (response.status === 200) {
                 setData("invoice_number", response.data?.value);
             } else {
                 console.log(response);
