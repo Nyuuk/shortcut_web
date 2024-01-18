@@ -1,0 +1,1 @@
+import{j as t}from"./app-51a4d728.js";import{s as e}from"./signalsComponents-9f2c803d.js";import s from"./PengubahObject-d4aa8223.js";/* empty css            */import"./runtime.module-d88397df.js";function p(){return console.log("Rendering ObjectTest"),t.jsxs("div",{children:[t.jsx("p",{children:e.test}),t.jsx(s,{})]})}export{p as default};

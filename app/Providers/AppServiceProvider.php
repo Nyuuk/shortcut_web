@@ -14,6 +14,7 @@ use App\Services\Program\ProgramService;
 use App\Services\Program\ProgramServiceImpl;
 use App\Services\Request\RequestService;
 use App\Services\Request\RequestServiceImpl;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -40,5 +41,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
+        //        if (config('app.env') === 'production') {
+        //            URL::forceScheme('https');
+        //        }
     }
 }

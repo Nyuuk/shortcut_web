@@ -1,0 +1,1 @@
+import{j as t}from"./app-51a4d728.js";import{useTestContext as o}from"./Context-99051c8e.js";import i from"./Index-9a386c66.js";/* empty css            */import"./ComponentA-e598b270.js";import"./ComponentB-960a7c84.js";function p(){const{data:r}=o();return t.jsx(i,{children:t.jsxs("h1",{children:["ini data dari atas : ",r]})})}export{p as default};

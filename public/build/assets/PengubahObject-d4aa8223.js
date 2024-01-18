@@ -1,0 +1,1 @@
+import{j as t}from"./app-51a4d728.js";import{s as e}from"./signalsComponents-9f2c803d.js";import"./runtime.module-d88397df.js";/* empty css            */function a(){return setInterval(()=>{e.test.value=Math.random()}),t.jsx("div",{children:t.jsx("h1",{className:"text-2xl",children:"Component Pengubah"})})}export{a as default};
