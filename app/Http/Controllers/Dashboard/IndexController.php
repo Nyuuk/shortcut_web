@@ -35,6 +35,11 @@ class IndexController extends Controller
         ]);
     }
 
+    public function members()
+    {
+        return Inertia::render('Dashboard/Members');
+    }
+
     public function programs()
     {
         return Inertia::render('Dashboard/Programs');

@@ -20,4 +20,8 @@ class PaymentMethod extends Model
     {
         return $this->hasMany(Invoice::class, 'payment_method_id');
     }
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }

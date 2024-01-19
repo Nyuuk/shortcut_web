@@ -26,4 +26,4 @@ Route::apiResource('programs', ProgramsController::class);
 Route::apiResource('members', MembersController::class);
 
 
-Route::get('/test', [\App\Http\Controllers\Dashboard\ApiController::class, 'layoutApi'])->name('test');
+Route::get('/test', [\App\Http\Controllers\Dashboard\ApiController::class, 'getMembers'])->name('test');

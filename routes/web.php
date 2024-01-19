@@ -46,6 +46,7 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
     Route::get('/', [\App\Http\Controllers\Dashboard\IndexController::class, 'dashboard'])->name('dashboard');
     Route::get('new-members', [\App\Http\Controllers\Dashboard\IndexController::class, 'newMembers'])->name('dashboard.new-member');
     Route::get('programs', [\App\Http\Controllers\Dashboard\IndexController::class, 'programs'])->name('dashboard.programs');
+    Route::get('members', [\App\Http\Controllers\Dashboard\IndexController::class, 'members'])->name('dashboard.members');
 
     Route::get('edit-member/{id}', [\App\Http\Controllers\Dashboard\IndexController::class, 'editMember'])->name('dashboard.edit-member');
     Route::get('my-profile', [\App\Http\Controllers\Dashboard\IndexController::class, 'myProfile'])->name('dashboard.my-profile');
@@ -53,6 +54,9 @@ Route::prefix('dashboard')->middleware(['auth', 'verified'])->group(function () 
 
     // API
     Route::prefix('api')->group(function () {
+        // MEMBERS
+        Route::get('members', [\App\Http\Controllers\Dashboard\ApiController::class, 'getMembers'])->name('dashboard.api.get-members');
+        //
         Route::get('layout', [\App\Http\Controllers\Dashboard\ApiController::class, 'layoutApi'])->name('dashboard.api.layout');
         // program
         Route::post('program', [\App\Http\Controllers\Dashboard\ApiController::class, 'newProgram'])->name('dashboard.api.new-program');

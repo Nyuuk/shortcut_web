@@ -62,6 +62,16 @@ class RequestServiceImpl implements RequestService
                 if (isset($anu['search'])) {
                     $data = $this->getByPageWithSearch($anu['page'], $anu['perPage'] ?? null, $anu['search']);
                     // Log::info('anu getByPageWithSearch');
+                } else if (isset($anu['searchBy'])) {
+                    if (!isset($anu['value'])) {
+                        $this->msgResult['data'] = 'value not found';
+                        $this->msgResult['code'] = 400;
+                        return $this->msgResult;
+                    }
+                    // parse json
+                    $anu['searchBy'] = json_decode($anu['searchBy']);
+                    $data = $this->searchBy($anu['value'], $anu['searchBy']);
+                    // $data = $anu['searchBy'];
                 } else {
                     $data = $this->getByPage($anu['page'], $anu['perPage'] ?? null);
                     // Log::info('anu getByPage');
@@ -77,36 +87,85 @@ class RequestServiceImpl implements RequestService
                 // Log::info('anu searchByColumn');
             }
         }
-        $data->map(function ($request) {
-            $request->programs = $this->getProgramNames($request->programs);
-            $request->programs_acc = $request->programs_acc !== null ? $this->getProgramNames($request->programs_acc) : $request->programs_acc;
-            return $request;
-        });
 
         $this->msgResult['data'] = $data;
         $this->msgResult['code'] = 200;
         return $this->msgResult;
     }
 
+    private function searchBy(string $searchValue, array $searchTable, $page = 1, $perPage = 10)
+    {
+        $result = \App\Models\Request::where(function ($query) use ($searchValue, $searchTable) {
+            foreach ($searchTable as $key => $value) {
+                if ($value == 'payment_method_name') {
+                    $query->orWhereHas('invoice.paymentMethod', function ($q) use ($searchValue) {
+                        $q->where('name', 'like', '%' . $searchValue . '%');
+                    });
+                    continue;
+                } else if ($value == 'invoice_status') {
+                    $query->orWhereHas('invoice', function ($q) use ($searchValue) {
+                        $q->where('status', $searchValue);
+                    });
+                    continue;
+                } else {
+                    $query->orWhere($value, 'like', '%' . $searchValue . '%');
+                    continue;
+                }
+            }
+        })
+            ->with('invoice.paymentMethod')->paginate($perPage, ['*'], 'page', $page);
+
+        $modifiedResult = $result->map(function ($request) use ($searchTable) {
+            $data = ["id" => $request->id];
+            foreach ($searchTable as $key => $value) {
+                if ($value == 'payment_method_name') {
+                    $data[$value] = $request->invoice->paymentMethod->name;
+                    continue;
+                }
+                if ($value == 'invoice_status') {
+                    $data[$value] = $request->invoice->status;
+                    continue;
+                }
+                if ($value == 'programs') {
+                    $data['programs_name'] = $request->map(function ($request) {
+                        $request->programs = $this->getProgramNames($request->programs);
+                        return $request;
+                    });
+                    $data['programs_id'] = $request->programs;
+                    continue;
+                }
+                if ($value == 'programs_acc') {
+                    $data['programs_acc_name'] = $request->map(function ($request) {
+                        $request->programs_acc = $request->programs_acc !== null ? $this->getProgramNames($request->programs_acc) : $request->programs_acc;
+                        return $request;
+                    });
+                    $data['programs_acc_id'] = $request->programs_acc;
+                    continue;
+                }
+                $data[$value] = $request->$value;
+            }
+
+            return $data;
+        });
+        // $modifiedResult = [
+        //     "data" => $modifiedResult,
+        //     ...$result
+        // ];
+        $result['data'] = $modifiedResult;
+
+        return $result;
+        // return $result;
+    }
+
     private function getByPage($page, $perPage)
     {
         $data = $this->repository->getByPage($page, $perPage);
-        // $this->msgResult['data'] = $data;
-        // $this->msgResult['code'] = 200;
-        // return $this->msgResult;
         return $data;
     }
 
     private function getByPageWithSearch($page, $perPage, $search)
     {
         $data = $this->repository->getByPageWithSearch($page, $perPage, $search);
-        // $dataWillReturn = $data->map(function ($request) {
-        //     $request->programs = $this->getProgramNames($request->programs);
-        //     $request->programs_acc = $request->programs_acc !== null ? $this->getProgramNames($request->programs_acc) : $request->programs_acc;
-        //     return $request;
-        // });
-        // $this->msgResult['data'] = $dataWillReturn;
-        // $this->msgResult['code'] = 200;
         return $data;
     }
 

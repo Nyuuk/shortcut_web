@@ -87,4 +87,11 @@ class ApiController extends Controller
     {
         return $this->paymentService->update($id, $req);
     }
+    public function getMembers()
+    {
+        // get all query param
+        $query = request()->query();
+        $result = $this->requestService->index($query);
+        return response()->json($result, 200);
+    }
 }

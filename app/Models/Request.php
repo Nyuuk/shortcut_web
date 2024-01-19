@@ -31,4 +31,9 @@ class Request extends Model
     {
         return $this->hasOne(Invoice::class, 'request_id');
     }
+
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class);
+    }
 }
