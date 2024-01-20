@@ -6,6 +6,7 @@ import {
     Checkbox,
     Label,
     Modal,
+    Pagination,
     Spinner,
     Table,
     TextInput,
@@ -22,10 +23,11 @@ export default function Members() {
     const [loading, setLoading] = useState(true);
     const [seacrhValue, setSearchValue] = useState("");
     const [tableColumn, setTableColumn] = useState([]);
-    const [pageSetting, setPageSetting] = useState({
-        page: 1,
-        perPage: 10,
-    });
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [perPage, setPerPage] = useState(5);
+    const [totalPage, setTotalPage] = useState(1);
+
     const [data, setData] = useState([]);
 
     const saveStateToCookie = () => {
@@ -40,7 +42,8 @@ export default function Members() {
     async function fetchData() {
         setLoading(true);
         const params = new URLSearchParams({
-            ...pageSetting,
+            page: currentPage,
+            perPage: perPage,
             searchBy: tableColumn,
             value: seacrhValue,
         });
@@ -50,8 +53,11 @@ export default function Members() {
             );
             if (resp.status === 200) {
                 setData(resp.data.data.data);
-                console.log(resp.data.data.data);
-                if (resp.data.data.data.length === 0) {
+                console.log(resp.data.data);
+                setPerPage(resp.data.data.per_page);
+                setCurrentPage(resp.data.data.current_page);
+                setTotalPage(resp.data.data.last_page);
+                if (resp.data.data?.data?.length === 0) {
                     addNotif({
                         title: "Data not found",
                         success: false,
@@ -66,7 +72,7 @@ export default function Members() {
     }
 
     useEffect(() => {
-        if (tableColumn.length > 0) {
+        if (tableColumn?.length > 0) {
             saveStateToCookie();
         }
         const getData = setTimeout(async () => {
@@ -74,7 +80,17 @@ export default function Members() {
         }, 500);
 
         return () => clearTimeout(getData);
-    }, [tableColumn, seacrhValue]);
+    }, [tableColumn, seacrhValue, currentPage]);
+
+    const onPageChange = (value) => {
+        setCurrentPage(value);
+    };
+
+    const themePagi = {
+        pages: {
+            base: "inline-flex items-center -space-x-px",
+        },
+    };
 
     return (
         <AdminLayout>
@@ -96,8 +112,19 @@ export default function Members() {
                 <T
                     className={"col-span-12"}
                     tableColumn={tableColumn}
-                    dataBody={data.length > 0 ? data : null}
+                    dataBody={data?.length > 0 ? data : null}
                 />
+                <div className="col-span-12">
+                    <div className="flex overflow-x-auto sm:justify-center">
+                        <Pagination
+                            currentPage={currentPage}
+                            totalPages={totalPage}
+                            onPageChange={onPageChange}
+                            showIcons
+                            theme={themePagi}
+                        />
+                    </div>
+                </div>
             </Container>
         </AdminLayout>
     );
