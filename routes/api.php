@@ -27,16 +27,9 @@ Route::apiResource('members', MembersController::class);
 
 
 Route::get('/test', function () {
-    $value = 'anus';
-    $idProgram = \App\Models\Program::where('username', $value)->select('id')->first();
-    // $idProgram = \App\Models\Program::where('username', 'LIKE', '%' . $value . '%')->pluck('id');
-    // $request = \App\Models\Request::whereRow('json_extract(programs, "$[*]") LIKE ?', ['%"' . $idProgram . '"%']);
-    if ($idProgram) {
-        $request = \App\Models\Request::where('programs', 'LIKE', '%' . $idProgram->id . '%')->get();
-        return response()->json($request);
-    } else {
-        return response()->json($idProgram);
-    }
-    // $request = \App\Models\Request::where('programs', 'LIKE', '%' . $idProgram?->id . '%')->get();
-    // return response()->json($request);
+    $value = 'paid' == 'paid' ? 1 : 0;
+    $data = \App\Models\Request::whereHas('invoice', function ($e) use ($value) {
+        $e->where('status', $value);
+    })->with('invoice')->get();
+    return response()->json($data);
 })->name('test');

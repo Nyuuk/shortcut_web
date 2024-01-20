@@ -78,9 +78,11 @@ class RequestServiceImpl implements RequestService
                         $q->where('name', 'like', '%' . $searchValue . '%');
                     });
                     continue;
-                } else if ($value == 'invoice_status') {
-                    $query->orWhereHas('invoice', function ($q) use ($searchValue) {
-                        $q->where('status', $searchValue);
+                } else if ($value == 'invoice_status' || ($searchValue == 'paid' && $searchValue == 'unpaid')) {
+                    $val = $searchValue == 'paid' ? 1 : 0;
+                    // dd($val);
+                    $query->orWhereHas('invoice', function ($q) use ($val) {
+                        $q->where('status', $val);
                     });
                     continue;
                 } else if ($value == 'programs_name') {
