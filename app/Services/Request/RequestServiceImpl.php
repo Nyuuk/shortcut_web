@@ -3,6 +3,7 @@
 namespace App\Services\Request;
 
 use App\Repositories\Request\RequestRepositorie;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
@@ -50,42 +51,17 @@ class RequestServiceImpl implements RequestService
     public function index($anu = null)
     {
         $data = array();
-        if ($anu == null) {
-            $data = $this->getByPage(1, 10);
-            // Log::info('anu null');
-        } else if (is_array($anu)) {
-            if (isset($anu['id'])) {
-                $data = $this->getById($anu['id']);
-                // Log::info('anu getById');
-            } else if (isset($anu['page'])) {
-                // Log::info('anu page');
-                if (isset($anu['search'])) {
-                    $data = $this->getByPageWithSearch($anu['page'], $anu['perPage'] ?? null, $anu['search']);
-                    // Log::info('anu getByPageWithSearch');
-                } else if (isset($anu['searchBy'])) {
-                    if (!isset($anu['value'])) {
-                        $this->msgResult['data'] = 'value not found';
-                        $this->msgResult['code'] = 400;
-                        return $this->msgResult;
-                    }
-                    // parse json
-                    $anu['searchBy'] = json_decode($anu['searchBy']);
-                    $data = $this->searchBy($anu['value'], $anu['searchBy']);
-                    // $data = $anu['searchBy'];
-                } else {
-                    $data = $this->getByPage($anu['page'], $anu['perPage'] ?? null);
-                    // Log::info('anu getByPage');
-                }
-            } else if (isset($anu['allData'])) {
-                $data = $this->allData();
-                // Log::info('anu allData');
-            } else if (isset($anu['search'])) {
-                $data = $this->getByPageWithSearch(1, 10, $anu['search']);
-                // Log::info('anu getByPageWithSearch only search');
-            } else {
-                $data = $this->searchByColumn($anu);
-                // Log::info('anu searchByColumn');
-            }
+        if (isset($anu['search'])) {
+            $data = $this->getByPageWithSearch($anu['page'], $anu['perPage'] ?? null, $anu['search']);
+            // Log::info('anu getByPageWithSearch');
+        } else if (isset($anu['searchBy'])) {
+            // parse json
+            // $anu['searchBy'] = json_decode($anu['searchBy']);
+            // string to array
+            $anu['searchBy'] = explode(',', $anu['searchBy']);
+            $data = $this->searchBy($anu['value'] ?? "", $anu['searchBy'], $anu['page'] ?? 1, $anu['perPage'] ?? 10);
+        } else {
+            $data = $this->getByPage($anu['page'] ?? 1, $anu['perPage'] ?? null);
         }
 
         $this->msgResult['data'] = $data;
@@ -95,7 +71,7 @@ class RequestServiceImpl implements RequestService
 
     private function searchBy(string $searchValue, array $searchTable, $page = 1, $perPage = 10)
     {
-        $result = \App\Models\Request::where(function ($query) use ($searchValue, $searchTable) {
+        $result = \App\Models\Request::orderBy('id', 'desc')->where(function ($query) use ($searchValue, $searchTable) {
             foreach ($searchTable as $key => $value) {
                 if ($value == 'payment_method_name') {
                     $query->orWhereHas('invoice.paymentMethod', function ($q) use ($searchValue) {
@@ -107,15 +83,27 @@ class RequestServiceImpl implements RequestService
                         $q->where('status', $searchValue);
                     });
                     continue;
+                } else if ($value == 'programs_name') {
+                    $nameProgram = \App\Models\Program::where('username', $searchValue)->select('id')->first();
+                    if ($nameProgram) {
+                        $query->orWhere('programs', 'LIKE', '%' . $nameProgram?->id . '%');
+                        continue;
+                    }
+                } else if ($value == 'programs_acc_name') {
+                    $namesProgram = \App\Models\Program::where('username', $searchValue)->select('id')->first();
+                    if ($namesProgram) {
+                        $query->orWhere('programs_acc', 'LIKE', '%' . $namesProgram?->id . '%');
+                        continue;
+                    }
                 } else {
                     $query->orWhere($value, 'like', '%' . $searchValue . '%');
-                    continue;
                 }
             }
         })
-            ->with('invoice.paymentMethod')->paginate($perPage, ['*'], 'page', $page);
+            ->with('invoice.paymentMethod')
+            ->paginate($perPage, ['*'], 'page', $page);
 
-        $modifiedResult = $result->map(function ($request) use ($searchTable) {
+        $modifiedResult = $result->getCollection()->map(function ($request) use ($searchTable) {
             $data = ["id" => $request->id];
             foreach ($searchTable as $key => $value) {
                 if ($value == 'payment_method_name') {
@@ -126,20 +114,15 @@ class RequestServiceImpl implements RequestService
                     $data[$value] = $request->invoice->status;
                     continue;
                 }
-                if ($value == 'programs') {
-                    $data['programs_name'] = $request->map(function ($request) {
-                        $request->programs = $this->getProgramNames($request->programs);
-                        return $request;
-                    });
+                if ($value == 'programs_name') {
+                    $data['programs_name'] = $this->getProgramNames($request->programs);
                     $data['programs_id'] = $request->programs;
                     continue;
                 }
-                if ($value == 'programs_acc') {
-                    $data['programs_acc_name'] = $request->map(function ($request) {
-                        $request->programs_acc = $request->programs_acc !== null ? $this->getProgramNames($request->programs_acc) : $request->programs_acc;
-                        return $request;
-                    });
-                    $data['programs_acc_id'] = $request->programs_acc;
+                if ($value == 'programs_acc_name') {
+                    $data['programs_acc_name'] = $request->programs_acc !== null ? $this->getProgramNames($request->programs_acc) : [];
+
+                    $data['programs_acc_id'] = $request->programs_acc !== null ? $request->programs_acc : [];
                     continue;
                 }
                 $data[$value] = $request->$value;
@@ -147,13 +130,16 @@ class RequestServiceImpl implements RequestService
 
             return $data;
         });
-        // $modifiedResult = [
-        //     "data" => $modifiedResult,
-        //     ...$result
-        // ];
-        $result['data'] = $modifiedResult;
 
-        return $result;
+        $modifiedPaginator = new LengthAwarePaginator(
+            $modifiedResult,
+            $result->total(),
+            $perPage, // Ganti dengan jumlah item per halaman yang diinginkan
+            $result->currentPage(),
+            ['path' => LengthAwarePaginator::resolveCurrentPath()]
+        );
+        return $modifiedPaginator;
+
         // return $result;
     }
 

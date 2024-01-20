@@ -26,4 +26,17 @@ Route::apiResource('programs', ProgramsController::class);
 Route::apiResource('members', MembersController::class);
 
 
-Route::get('/test', [\App\Http\Controllers\Dashboard\ApiController::class, 'getMembers'])->name('test');
+Route::get('/test', function () {
+    $value = 'anus';
+    $idProgram = \App\Models\Program::where('username', $value)->select('id')->first();
+    // $idProgram = \App\Models\Program::where('username', 'LIKE', '%' . $value . '%')->pluck('id');
+    // $request = \App\Models\Request::whereRow('json_extract(programs, "$[*]") LIKE ?', ['%"' . $idProgram . '"%']);
+    if ($idProgram) {
+        $request = \App\Models\Request::where('programs', 'LIKE', '%' . $idProgram->id . '%')->get();
+        return response()->json($request);
+    } else {
+        return response()->json($idProgram);
+    }
+    // $request = \App\Models\Request::where('programs', 'LIKE', '%' . $idProgram?->id . '%')->get();
+    // return response()->json($request);
+})->name('test');

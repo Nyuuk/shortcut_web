@@ -91,6 +91,7 @@ class ApiController extends Controller
     {
         // get all query param
         $query = request()->query();
+        // $result = explode(',', $query['searchBy']);
         $result = $this->requestService->index($query);
         return response()->json($result, 200);
     }

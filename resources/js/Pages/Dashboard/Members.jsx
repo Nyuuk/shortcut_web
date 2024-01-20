@@ -1,4 +1,6 @@
 import { AdminLayout } from "@/Layouts/Admin";
+import { convertWibWithManualOutput } from "@/api/ConvertToWib";
+import { Link } from "@inertiajs/react";
 import {
     Button,
     Checkbox,
@@ -14,40 +16,65 @@ import { IconContext } from "react-icons";
 import { FaSearch } from "react-icons/fa";
 import { IoSettings } from "react-icons/io5";
 import { MdCancel } from "react-icons/md";
+import { addNotif } from "./Components/Notification";
 
 export default function Members() {
-    const [seacrhValue, setSearchValue] = useState({
-        value: "",
-        loading: false,
-    });
+    const [loading, setLoading] = useState(true);
+    const [seacrhValue, setSearchValue] = useState("");
     const [tableColumn, setTableColumn] = useState([]);
-    const [searchBy, setSearchBy] = useState([]);
+    const [pageSetting, setPageSetting] = useState({
+        page: 1,
+        perPage: 10,
+    });
+    const [data, setData] = useState([]);
 
     const saveStateToCookie = () => {
         setTimeout(() => {
             Cookies.set(
                 "fitur_table_and_search",
-                JSON.stringify({ tableColumn, searchBy })
+                JSON.stringify({ tableColumn })
             );
         }, 500);
     };
 
     async function fetchData() {
+        setLoading(true);
+        const params = new URLSearchParams({
+            ...pageSetting,
+            searchBy: tableColumn,
+            value: seacrhValue,
+        });
         try {
-            const resp = await axios.get(route("dashboard.api.get-members"));
+            const resp = await axios.get(
+                route("dashboard.api.get-members") + "?" + params
+            );
             if (resp.status === 200) {
-                setTableColumn(resp.data.data);
+                setData(resp.data.data.data);
+                console.log(resp.data.data.data);
+                if (resp.data.data.data.length === 0) {
+                    addNotif({
+                        title: "Data not found",
+                        success: false,
+                    });
+                }
             }
         } catch (error) {
             console.error(error);
+        } finally {
+            setLoading(false);
         }
     }
 
     useEffect(() => {
-        if (tableColumn.length > 0 || searchBy.length > 0) {
+        if (tableColumn.length > 0) {
             saveStateToCookie();
         }
-    }, [tableColumn, searchBy]);
+        const getData = setTimeout(async () => {
+            fetchData();
+        }, 500);
+
+        return () => clearTimeout(getData);
+    }, [tableColumn, seacrhValue]);
 
     return (
         <AdminLayout>
@@ -58,18 +85,18 @@ export default function Members() {
             <Container>
                 <SearchInput
                     value={seacrhValue}
+                    loading={loading}
                     onChangeValue={setSearchValue}
                     className={"col-span-11"}
                 />
                 <ChangeTableColumn
                     tableColumn={{ tableColumn, setTableColumn }}
-                    searchBy={{ searchBy, setSearchBy }}
                     className={"col-span-1"}
                 />
                 <T
                     className={"col-span-12"}
                     tableColumn={tableColumn}
-                    dataBody={null}
+                    dataBody={data.length > 0 ? data : null}
                 />
             </Container>
         </AdminLayout>
@@ -84,24 +111,22 @@ const Container = ({ children }) => {
     );
 };
 
-const SearchInput = ({ value, onChangeValue, className }) => {
+const SearchInput = ({ value, onChangeValue, className, loading }) => {
     return (
         <div className={"w-full relative " + className}>
             <TextInput
                 id="search"
                 type="text"
-                icon={value.loading ? Spinner : FaSearch}
+                icon={loading ? Spinner : FaSearch}
                 placeholder="Search here 🙌"
-                value={value.value}
-                onChange={(e) =>
-                    onChangeValue({ ...value, value: e.target.value })
-                }
+                value={value}
+                onChange={(e) => onChangeValue(e.target.value)}
             />
             <IconContext.Provider value={{ size: "1.5em" }}>
-                {value?.value.length > 0 && (
+                {value.length > 0 && (
                     <span
                         className="absolute top-3 md:top-2 right-2 w-auto h-auto hover:cursor-pointer"
-                        onClick={() => onChangeValue({ ...value, value: "" })}
+                        onClick={() => onChangeValue("")}
                     >
                         <MdCancel />
                     </span>
@@ -113,7 +138,6 @@ const SearchInput = ({ value, onChangeValue, className }) => {
 
 const ChangeTableColumn = ({ ...props }) => {
     const { tableColumn, setTableColumn } = props.tableColumn;
-    const { searchBy, setSearchBy } = props.searchBy;
     const { className } = props;
     const [openModal, setOpenModal] = useState(false);
 
@@ -123,18 +147,18 @@ const ChangeTableColumn = ({ ...props }) => {
             "email",
             "no_wa",
             "alamat_ht",
-            "programs",
+            "programs_name",
             "period",
-            "status_invoice",
+            "invoice_status",
         ],
         searchBy: [
             "nama",
             "email",
             "no_wa",
             "alamat_ht",
-            "programs",
+            "programs_name",
             "period",
-            "status_invoice",
+            "invoice_status",
         ],
     };
 
@@ -144,12 +168,12 @@ const ChangeTableColumn = ({ ...props }) => {
         { label: "WhatsApp Number", id: "no_wa" },
         { label: "Hometown Address", id: "alamat_ht" },
         { label: "Temporary Address", id: "alamat_st" },
-        { label: "Programs Requested", id: "programs" },
-        { label: "Programs Accepted", id: "programs_acc" },
+        { label: "Programs Requested", id: "programs_name" },
+        { label: "Programs Accepted", id: "programs_acc_name" },
         { label: "Period", id: "period" },
         { label: "Note", id: "catatan" },
-        { label: "Payment Method", id: "payment_method" },
-        { label: "Status Invoice", id: "status_invoice" },
+        { label: "Payment Method", id: "payment_method_name" },
+        { label: "Status Invoice", id: "invoice_status" },
         { label: "Created At", id: "created_at" },
         { label: "Updated At", id: "updated_at" },
     ];
@@ -173,7 +197,7 @@ const ChangeTableColumn = ({ ...props }) => {
         changeFunction(target);
     };
     const ModalChangeCheckbook = ({ value, onChange }) => {
-        const { valueColumn, tableColumn, searchBy, openModal } = value;
+        const { valueColumn, tableColumn, openModal } = value;
         const { onChangeCheckbook, setOpenModal } = onChange;
         return (
             <Modal show={openModal} onClose={() => setOpenModal(false)}>
@@ -216,51 +240,10 @@ const ChangeTableColumn = ({ ...props }) => {
                                 })}
                             </div>
                         </div>
-                        <div className="space-y-2">
-                            <div className="block">
-                                <Label
-                                    value="Search By :"
-                                    className="uppercase text-base"
-                                    htmlFor="search_by"
-                                />
-                            </div>
-                            <div
-                                id="search_by"
-                                className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-y-2"
-                            >
-                                {valueColumn.map((item, key) => {
-                                    return (
-                                        <div className="flex gap-2" key={key}>
-                                            <Checkbox
-                                                id={item.id + "_search_by"}
-                                                onChange={() =>
-                                                    onChangeCheckbook(
-                                                        "searchBy",
-                                                        item.id
-                                                    )
-                                                }
-                                                checked={searchBy.includes(
-                                                    item.id
-                                                )}
-                                            />
-                                            <Label
-                                                value={item.label}
-                                                htmlFor={item.id + "_search_by"}
-                                            />
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        </div>
                     </div>
                 </Modal.Body>
                 <Modal.Footer>
-                    <Button onClick={() => setOpenModal(false)}>
-                        I accept
-                    </Button>
-                    <Button color="gray" onClick={() => setOpenModal(false)}>
-                        Decline
-                    </Button>
+                    <Button onClick={() => setOpenModal(false)}>OKEY</Button>
                 </Modal.Footer>
             </Modal>
         );
@@ -271,10 +254,8 @@ const ChangeTableColumn = ({ ...props }) => {
         if (cookieData) {
             const data = JSON.parse(Cookies.get("fitur_table_and_search"));
             setTableColumn(data.tableColumn);
-            setSearchBy(data.searchBy);
         } else {
             setTableColumn(valueChecked.tableColumn);
-            setSearchBy(valueChecked.searchBy);
             Cookies.set("fitur_table_and_search", JSON.stringify(valueChecked));
         }
     };
@@ -293,7 +274,7 @@ const ChangeTableColumn = ({ ...props }) => {
                 <IoSettings />
             </Button>
             <ModalChangeCheckbook
-                value={{ valueColumn, tableColumn, searchBy, openModal }}
+                value={{ valueColumn, tableColumn, openModal }}
                 onChange={{ onChangeCheckbook, setOpenModal }}
             />
         </>
@@ -325,12 +306,12 @@ const T = ({ className, tableColumn = [], dataBody = null }) => {
             name: "Temporary Address",
         },
         {
-            uniq_name: "programs",
+            uniq_name: "programs_name",
             name: "Requested Programs",
             type: "list",
         },
         {
-            uniq_name: "programs_acc",
+            uniq_name: "programs_acc_name",
             name: "Accepted Programs",
             type: "list",
         },
@@ -341,14 +322,17 @@ const T = ({ className, tableColumn = [], dataBody = null }) => {
         {
             uniq_name: "period",
             name: "Period",
+            type: "date",
         },
         {
-            uniq_name: "payment_method_id",
+            uniq_name: "payment_method_name",
             name: "Payment Method",
         },
         {
-            uniq_name: "status_invoice",
+            uniq_name: "invoice_status",
             name: "Status Invoice",
+            type: "boolean",
+            changeTo: { true: "paid", false: "unpaid" },
         },
         {
             uniq_name: "created_at",
@@ -366,6 +350,7 @@ const T = ({ className, tableColumn = [], dataBody = null }) => {
         <div className={"overflow-x-auto " + className}>
             <Table striped>
                 <Table.Head>
+                    <Table.HeadCell>#</Table.HeadCell>
                     {tableColumn.map((item, key) => {
                         const name = columnValueDefault.filter(
                             (i) => i.uniq_name === item
@@ -393,70 +378,109 @@ const T = ({ className, tableColumn = [], dataBody = null }) => {
                                     className="bg-white dark:border-gray-700 dark:bg-gray-800"
                                     key={key}
                                 >
+                                    <Table.Cell className="whitespace-nowrap">
+                                        {key + 1}
+                                    </Table.Cell>
                                     {tableColumn.map((column, i) => {
-                                        if (i === 0)
-                                            return (
-                                                <Table.Cell
-                                                    key={i}
-                                                    className="whitespace-nowrap font-medium text-gray-900 dark:text-white"
-                                                >
-                                                    {item[column]}
-                                                </Table.Cell>
-                                            );
-                                        else if (column?.type === "date")
+                                        const {
+                                            uniq_name,
+                                            name,
+                                            type,
+                                            prefix_link,
+                                            changeTo,
+                                        } = columnValueDefault.filter(
+                                            (i) => i.uniq_name === column
+                                        )[0];
+                                        if (type === "date")
                                             return (
                                                 <Table.Cell key={i}>
                                                     {convertWibWithManualOutput(
-                                                        item[column]
+                                                        item[uniq_name]
                                                     )}
                                                 </Table.Cell>
                                             );
-                                        else if (column?.type === "list")
+                                        else if (type === "list")
                                             return (
                                                 <Table.Cell key={i}>
                                                     <div className="flex flex-row flex-wrap gap-1 h-full">
-                                                        {item[column].map(
-                                                            (item, i) => {
-                                                                return (
-                                                                    <div
-                                                                        key={i}
-                                                                        className="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300"
-                                                                    >
-                                                                        {item}
-                                                                    </div>
-                                                                );
-                                                            }
+                                                        {item[uniq_name] &&
+                                                        item[uniq_name]
+                                                            ?.length > 0 ? (
+                                                            item[uniq_name].map(
+                                                                (item, i) => {
+                                                                    return (
+                                                                        <div
+                                                                            key={
+                                                                                i
+                                                                            }
+                                                                            className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 uppercase"
+                                                                        >
+                                                                            {
+                                                                                item
+                                                                            }
+                                                                        </div>
+                                                                    );
+                                                                }
+                                                            )
+                                                        ) : (
+                                                            <span className="uppercase text-xs">
+                                                                doesn't have
+                                                            </span>
                                                         )}
                                                     </div>
+                                                </Table.Cell>
+                                            );
+                                        else if (type === "boolean")
+                                            return (
+                                                <Table.Cell key={i}>
+                                                    <div
+                                                        className={`text-center text-xs font-medium mr-2 px-2.5 py-0.5 rounded text-white uppercase ${
+                                                            item[uniq_name]
+                                                                ? "bg-green-500"
+                                                                : "bg-red-500"
+                                                        }`}
+                                                    >
+                                                        {
+                                                            changeTo[
+                                                                item[uniq_name]
+                                                            ]
+                                                        }
+                                                    </div>
+                                                </Table.Cell>
+                                            );
+                                        else if (type === "link")
+                                            return (
+                                                <Table.Cell key={i}>
+                                                    <a
+                                                        href={`${prefix_link}${item[uniq_name]}`}
+                                                        className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                                                    >
+                                                        62{item[uniq_name]}
+                                                    </a>
                                                 </Table.Cell>
                                             );
                                         else
                                             return (
                                                 <Table.Cell key={i}>
-                                                    {item[column]}
+                                                    {item[uniq_name]}
                                                 </Table.Cell>
                                             );
                                     })}
+                                    <Table.Cell>
+                                        <Link
+                                            href={route(
+                                                "dashboard.edit-member",
+                                                { id: item.id }
+                                            )}
+                                            className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
+                                        >
+                                            Edit
+                                        </Link>
+                                    </Table.Cell>
                                 </Table.Row>
                             );
                         })
                     )}
-                    {/* <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
-                        <Table.Cell className="whitespace-nowrap font-medium text-gray-900 dark:text-white">
-                            {'Apple MacBook Pro 17"'}
-                        </Table.Cell>
-                        <Table.Cell>Sliver</Table.Cell>
-                        <Table.Cell>Laptop</Table.Cell>
-                        <Table.Cell>$2999</Table.Cell>
-                        <Table.Cell>
-                            <a
-                                href="#"
-                                className="font-medium text-cyan-600 hover:underline dark:text-cyan-500"
-                            >
-                                Edit
-                            </a>
-                        </Table.Cell>
-                    </Table.Row> */}
                 </Table.Body>
             </Table>
         </div>
@@ -498,6 +522,9 @@ const LoadingSkeleton = ({ columnTotal }) => {
                         </Table.Cell>
                     );
                 })}
+                <Table.Cell>
+                    <Skeleton classNamewe="w-full" />
+                </Table.Cell>
                 <Table.Cell>
                     <Skeleton classNamewe="w-full" />
                 </Table.Cell>
