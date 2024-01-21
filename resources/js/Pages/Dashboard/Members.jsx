@@ -4,6 +4,7 @@ import { Link } from "@inertiajs/react";
 import {
     Button,
     Checkbox,
+    Dropdown,
     Label,
     Modal,
     Pagination,
@@ -18,6 +19,10 @@ import { FaSearch } from "react-icons/fa";
 import { IoSettings } from "react-icons/io5";
 import { MdCancel } from "react-icons/md";
 import { addNotif } from "./Components/Notification";
+import { effect, signal } from "@preact/signals-react";
+import { useSignals } from "@preact/signals-react/runtime";
+
+const perPage = signal(10);
 
 export default function Members() {
     const [loading, setLoading] = useState(true);
@@ -25,10 +30,11 @@ export default function Members() {
     const [tableColumn, setTableColumn] = useState([]);
 
     const [currentPage, setCurrentPage] = useState(1);
-    const [perPage, setPerPage] = useState(5);
     const [totalPage, setTotalPage] = useState(1);
 
     const [data, setData] = useState([]);
+
+    useSignals();
 
     const saveStateToCookie = () => {
         setTimeout(() => {
@@ -40,10 +46,9 @@ export default function Members() {
     };
 
     async function fetchData() {
-        setLoading(true);
         const params = new URLSearchParams({
             page: currentPage,
-            perPage: perPage,
+            perPage: perPage.value,
             searchBy: tableColumn,
             value: seacrhValue,
         });
@@ -54,7 +59,7 @@ export default function Members() {
             if (resp.status === 200) {
                 setData(resp.data.data.data);
                 console.log(resp.data.data);
-                setPerPage(resp.data.data.per_page);
+                perPage.value = resp.data.data.per_page;
                 setCurrentPage(resp.data.data.current_page);
                 setTotalPage(resp.data.data.last_page);
                 if (resp.data.data?.data?.length === 0) {
@@ -75,12 +80,14 @@ export default function Members() {
         if (tableColumn?.length > 0) {
             saveStateToCookie();
         }
+        setLoading(true);
+        setData([]);
         const getData = setTimeout(async () => {
             fetchData();
         }, 500);
 
         return () => clearTimeout(getData);
-    }, [tableColumn, seacrhValue, currentPage]);
+    }, [tableColumn, seacrhValue, currentPage, perPage.value]);
 
     const onPageChange = (value) => {
         setCurrentPage(value);
@@ -204,9 +211,21 @@ const ChangeTableColumn = ({ ...props }) => {
         { label: "Created At", id: "created_at" },
         { label: "Updated At", id: "updated_at" },
     ];
-    const onChangeCheckbook = (by = "tableColumn", target) => {
+    const onChangeCheckbook = (
+        by = "tableColumn",
+        target = "",
+        def = false
+    ) => {
         const changeFunction = (val) => {
             if (by === "tableColumn") {
+                if (target.length === 0 && def === false) {
+                    setTableColumn([]);
+                    return;
+                }
+                if (def) {
+                    setTableColumn(valueChecked.tableColumn);
+                    return;
+                }
                 if (tableColumn.includes(val)) {
                     setTableColumn(tableColumn.filter((item) => item !== val));
                 } else {
@@ -232,12 +251,62 @@ const ChangeTableColumn = ({ ...props }) => {
                 <Modal.Body>
                     <div className="flex flex-col gap-4">
                         <div className="space-y-2">
-                            <div className="block">
-                                <Label
-                                    value="Columns : "
-                                    htmlFor="columns"
-                                    className="text-base uppercase "
-                                />
+                            <Dropdown
+                                label={"ITEMS PER PAGE : " + perPage.value}
+                                size="sm"
+                            >
+                                <Dropdown.Item
+                                    onClick={() => (perPage.value = 10)}
+                                >
+                                    10
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                    onClick={() => (perPage.value = 15)}
+                                >
+                                    15
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                    onClick={() => (perPage.value = 20)}
+                                >
+                                    20
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                    onClick={() => (perPage.value = 25)}
+                                >
+                                    25
+                                </Dropdown.Item>
+                                <Dropdown.Item
+                                    onClick={() => (perPage.value = 100)}
+                                >
+                                    100
+                                </Dropdown.Item>
+                            </Dropdown>
+                            <div className="flex flex-row justify-between">
+                                <div className="flex flex-col">
+                                    <Label
+                                        value="Columns : "
+                                        htmlFor="columns"
+                                        className="text-base uppercase "
+                                    />
+                                    <div>
+                                        <span className="text-xs text-red-500">
+                                            Attention!{" "}
+                                        </span>
+                                        <span className="text-xs dark:text-gray-200/50">
+                                            the order depends on when you check
+                                            it
+                                        </span>
+                                    </div>
+                                </div>
+                                <Button
+                                    color="dark"
+                                    size={"xs"}
+                                    onClick={() =>
+                                        onChangeCheckbook("tableColumn", "")
+                                    }
+                                >
+                                    RESET
+                                </Button>
                             </div>
                             <div
                                 id="column"
@@ -271,6 +340,14 @@ const ChangeTableColumn = ({ ...props }) => {
                 </Modal.Body>
                 <Modal.Footer>
                     <Button onClick={() => setOpenModal(false)}>OKEY</Button>
+                    <Button
+                        onClick={() =>
+                            onChangeCheckbook("tableColumn", "", true)
+                        }
+                        color="red"
+                    >
+                        SET DEFAULT COLUMN
+                    </Button>
                 </Modal.Footer>
             </Modal>
         );
