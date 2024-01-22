@@ -58,7 +58,7 @@ export default function Members() {
             );
             if (resp.status === 200) {
                 setData(resp.data.data.data);
-                console.log(resp.data.data);
+                // console.log(resp.data.data);
                 perPage.value = resp.data.data.per_page;
                 setCurrentPage(resp.data.data.current_page);
                 setTotalPage(resp.data.data.last_page);
